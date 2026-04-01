@@ -19,23 +19,30 @@ const path = require("path");
 const BUILD = path.join(__dirname, "../build");
 const CONTRACTS = path.join(__dirname, "../contracts");
 
-async function main() {
-  // ---- 1. Export Groth16 Verifier ----
-  console.log("==> Exporting Verifier.sol...");
-  const zkey = path.join(BUILD, "private_transfer_0001.zkey");
+// snarkjs locks its exports map, so read the template directly from node_modules
+const templatePath = path.join(__dirname, "../node_modules/snarkjs/templates/verifier_groth16.sol.ejs");
+
+async function exportVerifier(zkeyName, solidityName) {
+  const zkey = path.join(BUILD, `${zkeyName}_0001.zkey`);
   if (!fs.existsSync(zkey)) {
     throw new Error(`Proving key not found: ${zkey}\nRun: npm run compile && npm run setup`);
   }
-
-  // snarkjs locks its exports map, so read the template directly from node_modules
-  const templatePath = path.join(__dirname, "../node_modules/snarkjs/templates/verifier_groth16.sol.ejs");
-  const verifierCode = await snarkjs.zKey.exportSolidityVerifier(zkey, {
+  const code = await snarkjs.zKey.exportSolidityVerifier(zkey, {
     groth16: fs.readFileSync(templatePath, "utf-8"),
   });
-  fs.writeFileSync(path.join(CONTRACTS, "Verifier.sol"), verifierCode);
-  console.log("    Written: contracts/Verifier.sol");
+  fs.writeFileSync(path.join(CONTRACTS, `${solidityName}.sol`), code);
+  console.log(`    Written: contracts/${solidityName}.sol`);
+}
 
-  console.log("    Note: PoseidonT4 is deployed from bytecode in deploy.js (not Solidity).");
+async function main() {
+  // Each circuit gets its own verifier contract with a unique name
+  console.log("==> Exporting Verifier.sol (private_transfer)...");
+  await exportVerifier("private_transfer", "Verifier");
+
+  console.log("==> Exporting ProveValueVerifier.sol (prove_value)...");
+  await exportVerifier("prove_value", "ProveValueVerifier");
+
+  console.log("\n    Note: PoseidonT4 is deployed from bytecode in deploy.js (not Solidity).");
   console.log("\nDone. Next: npm run compile:contracts");
 }
 

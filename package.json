@@ -8,6 +8,7 @@
     "setup": "bash scripts/setup.sh",
     "export:contracts": "node scripts/export-contracts.js",
     "prove": "node scripts/prove.js",
+    "commit:prove": "node scripts/commit-and-prove.js",
     "test": "node tests/private_transfer_test.js",
     "compile:contracts": "npx hardhat compile",
     "deploy:amoy": "npx hardhat run scripts/deploy.js --network polygon_amoy",

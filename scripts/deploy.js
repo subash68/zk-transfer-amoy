@@ -45,9 +45,9 @@ async function main() {
   const poseidonAddr = await poseidon.getAddress();
   console.log("    PoseidonT4:", poseidonAddr);
 
-  // ---- 2. Deploy Verifier ----
-  console.log("\n==> Deploying Groth16Verifier...");
-  const Verifier = await hre.ethers.getContractFactory("Groth16Verifier");
+  // ---- 2. Deploy Verifier (for PrivateToken) ----
+  console.log("\n==> Deploying Groth16Verifier (private_transfer)...");
+  const Verifier = await hre.ethers.getContractFactory("contracts/Verifier.sol:Groth16Verifier");
   const verifier = await Verifier.deploy();
   await verifier.waitForDeployment();
   const verifierAddr = await verifier.getAddress();
@@ -61,6 +61,22 @@ async function main() {
   const tokenAddr = await token.getAddress();
   console.log("    PrivateToken:", tokenAddr);
 
+  // ---- 4. Deploy ProveValueVerifier (for ValueRegistry) ----
+  console.log("\n==> Deploying ProveValueVerifier...");
+  const ProveValueVerifier = await hre.ethers.getContractFactory("contracts/ProveValueVerifier.sol:Groth16Verifier");
+  const proveValueVerifier = await ProveValueVerifier.deploy();
+  await proveValueVerifier.waitForDeployment();
+  const proveValueVerifierAddr = await proveValueVerifier.getAddress();
+  console.log("    ProveValueVerifier:", proveValueVerifierAddr);
+
+  // ---- 5. Deploy ValueRegistry ----
+  console.log("\n==> Deploying ValueRegistry...");
+  const ValueRegistry = await hre.ethers.getContractFactory("ValueRegistry");
+  const registry      = await ValueRegistry.deploy(proveValueVerifierAddr);
+  await registry.waitForDeployment();
+  const registryAddr = await registry.getAddress();
+  console.log("    ValueRegistry:", registryAddr);
+
   // ---- Save deployment info ----
   const deployment = {
     network:      hre.network.name,
@@ -68,9 +84,11 @@ async function main() {
     deployer:     deployer.address,
     deployedAt:   new Date().toISOString(),
     contracts: {
-      PoseidonT4:   poseidonAddr,
-      Verifier:     verifierAddr,
-      PrivateToken: tokenAddr,
+      PoseidonT4:          poseidonAddr,
+      Verifier:            verifierAddr,
+      PrivateToken:        tokenAddr,
+      ProveValueVerifier:  proveValueVerifierAddr,
+      ValueRegistry:       registryAddr,
     },
   };
 

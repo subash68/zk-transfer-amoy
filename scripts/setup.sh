@@ -21,15 +21,21 @@ else
 fi
 
 # ---- Phase 2: Circuit-specific setup (Groth16) ----
-echo ""
-echo "==> Phase 2: Circuit-specific key generation"
-snarkjs groth16 setup "$BUILD_DIR/private_transfer.r1cs" "$PTAU" "$BUILD_DIR/private_transfer_0000.zkey"
-snarkjs zkey contribute "$BUILD_DIR/private_transfer_0000.zkey" "$BUILD_DIR/private_transfer_0001.zkey" \
-  --name="Dev contribution" -v -e="$(openssl rand -hex 32)"
-snarkjs zkey export verificationkey "$BUILD_DIR/private_transfer_0001.zkey" "$BUILD_DIR/verification_key.json"
-rm "$BUILD_DIR/private_transfer_0000.zkey"
+setup_circuit() {
+  local NAME="$1"
+  echo ""
+  echo "==> Phase 2 [$NAME]: Groth16 key generation"
+  snarkjs groth16 setup "$BUILD_DIR/${NAME}.r1cs" "$PTAU" "$BUILD_DIR/${NAME}_0000.zkey"
+  snarkjs zkey contribute "$BUILD_DIR/${NAME}_0000.zkey" "$BUILD_DIR/${NAME}_0001.zkey" \
+    --name="Dev contribution" -v -e="$(openssl rand -hex 32)"
+  snarkjs zkey export verificationkey "$BUILD_DIR/${NAME}_0001.zkey" "$BUILD_DIR/${NAME}_verification_key.json"
+  rm "$BUILD_DIR/${NAME}_0000.zkey"
+  echo "    Proving key : $BUILD_DIR/${NAME}_0001.zkey"
+  echo "    Verif. key  : $BUILD_DIR/${NAME}_verification_key.json"
+}
+
+setup_circuit "private_transfer"
+setup_circuit "prove_value"
 
 echo ""
-echo "==> Setup complete. Artifacts:"
-echo "    Proving key  : $BUILD_DIR/private_transfer_0001.zkey"
-echo "    Verif. key   : $BUILD_DIR/verification_key.json"
+echo "==> Setup complete for all circuits."

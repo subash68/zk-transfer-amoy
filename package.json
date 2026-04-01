@@ -1,0 +1,26 @@
+{
+  "name": "zk-circuits",
+  "version": "1.0.0",
+  "description": "Zero-knowledge circuit for privacy-preserving token transfers",
+  "scripts": {
+    "install:circom": "bash scripts/install-circom.sh",
+    "compile": "bash scripts/compile.sh",
+    "setup": "bash scripts/setup.sh",
+    "export:contracts": "node scripts/export-contracts.js",
+    "prove": "node scripts/prove.js",
+    "test": "node tests/private_transfer_test.js",
+    "compile:contracts": "npx hardhat compile",
+    "deploy:amoy": "npx hardhat run scripts/deploy.js --network polygon_amoy",
+    "submit:transfer": "node scripts/submit-transfer.js"
+  },
+  "dependencies": {
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "^0.7.4"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.5"
+  }
+}
